@@ -1,0 +1,12 @@
+test:
+  url: "mongodb://localhost:27017/events_test"
+  debug: false
+
+development:
+  url: "mongodb://localhost:27017/events_development"
+  debug: true
+
+production:
+  url: "env:MONGODB_URL"
+  debug: true
+
