@@ -12,6 +12,7 @@ const eventSchema = new Schema({
   type:  { type: String, required: true },
   payload: { type: Object, required: true },
   date: { type: Date, default: Date.now },
+  processed_by: { type: [ String ] },
   meta: {
     origin: String,
     referer:  String
@@ -51,15 +52,25 @@ app.put("/api/events/register", (req, res) => {
 app.get("/api/events/feed/:time/:period/client/:clienId", (req, res) => {
   const { time, period, clienId } = req.params
 
-  let startDate, endDate
+  let startDate, endDate, prevDate, nextDate
+
 
   switch(time) {
     case "hour":
-
+      startDate = moment(period).startOf("hour")
+      endDate =  moment(period).endOf("hour")
+      prevDate = startDate.add(-1, "hour").format("YYYY-MM-DDTHH")
+      break
     case "day":
       startDate = moment(period).startOf("day")
       endDate =  moment(period).endOf("day")
+      prevDate = startDate.add(-1, "day").format("YYYY-MM-DD")
+      break
     case "month":
+      startDate = moment(period).startOf("month").startOf("day")
+      endDate =  moment(period).endOf("month").endOf("day")
+      prevDate = startDate.add(-1, "month").format("YYYY-MM")
+      break
   }
 
   Event.find({
@@ -69,9 +80,19 @@ app.get("/api/events/feed/:time/:period/client/:clienId", (req, res) => {
     },
   }).then(events => {
     res.json({
-      events,
+      events: events.map(event => ({
+        type: event.type,
+        payload: event.payload,
+        date: event.date,
+        links: [
+          { rel: "self", href: `/api/events/${event.id}` },
+          { rel: "mark-processed", href: `/api/events/${event.id}/ok/${clienId}` }
+        ]
+      })),
       links: [
-        { rel: "self" }
+        { rel: "self", href: req.originalUrl },
+        { rel: "prev", href: `/api/events/feed/${time}/${prevDate}/client/${clienId}` }
+        
       ]
     })
   })
