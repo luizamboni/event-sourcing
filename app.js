@@ -29,8 +29,6 @@ app.use(bodyParserMiddleware.json())
 
 app.use(loggerMiddleware("dev"))
 
-
-
 app.post("/api/events/send", (req, res) => {
   const attrs = req.body
   console.log(attrs)
@@ -76,7 +74,7 @@ app.get("/api/events/feed/:time/:period/client/:clienId", (req, res) => {
   Event.find({
     date: {
       $gte: startDate.toDate(),
-      $lt: endDate.toDate()
+      $lt: endDate.toDate(),
     },
   }).then(events => {
     res.json({
@@ -100,7 +98,17 @@ app.get("/api/events/feed/:time/:period/client/:clienId", (req, res) => {
 
 app.put("/api/events/:eventId/ok/:clientId", (req, res) => {
 
-  res.json({ acknowledge: true })
+  const { eventId, clientId } = req.params
+  
+  Event.findOne({ _id: eventId, processed_by: { $nin: [clientId]  }})
+  .then(event => {
+    if (event) {
+      event.processed_by.addToSet(clientId)
+      event.save()
+      res.json({ acknowledge: true })
+    } else // TODO: gone status
+      res.json({ message: "event gone"})
+  })
 })
 
 app.use((err, req, res, next) => {
