@@ -19,7 +19,15 @@ const eventSchema = new Schema({
   }
 })
 
+const EventRegistrySchema = new Schema({
+  type:  { type: String, required: true }, // TODO make this primary
+  ttl: { type: String, required: true, default: "ephemeral" },
+  date: { type: Date, default: Date.now },
+  streams: { type: [ Object ]}
+})
+
 const Event = mongoose.model('Event', eventSchema)
+const EventRegistry = mongoose.model('Event', EventRegistrySchema)
 
 // midlewares
 const loggerMiddleware = require("morgan")
@@ -31,11 +39,10 @@ app.use(loggerMiddleware("dev"))
 
 app.post("/api/events/send", (req, res) => {
   const attrs = req.body
-  console.log(attrs)
+
   Event.create(attrs)
   .then(event => {
     res.status(201).json(event)
-    
   }).catch(err => {
     res.status(400).json({ error: err.message})
     
@@ -43,8 +50,12 @@ app.post("/api/events/send", (req, res) => {
 })
 
 app.put("/api/events/register", (req, res) => {
+  const attrs = req.body
   
-  res.json({ acknowledge: true })
+  EventRegistry.find
+  EventRegistry.create(attrs).then(reg => {
+    res.json({ acknowledge: true })
+  })
 })
 
 app.get("/api/events/feed/:time/:period/client/:clienId", (req, res) => {
