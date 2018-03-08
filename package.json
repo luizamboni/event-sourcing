@@ -4,6 +4,7 @@
   "description": "event sourcing solution in nodejs",
   "main": "index.js",
   "scripts": {
+    "start": "./bin/www",
     "test": "mocha"
   },
   "keywords": [
@@ -18,6 +19,7 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
+    "co-express": "^2.0.0",
     "env-o-loader": "^1.0.7",
     "express": "^4.16.2",
     "moment": "^2.21.0",
