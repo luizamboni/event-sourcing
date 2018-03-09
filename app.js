@@ -15,14 +15,16 @@ app.use(bodyParserMiddleware.json())
 
 app.use(loggerMiddleware("dev"))
 
-
-app.put("/api/events/register", EventRegistryController.create)
+app.get("/api/events/listener/:id", EventRegistryController.get)
+app.post("/api/events/listener", EventRegistryController.create)
+app.post("/api/events/listener/:id/streams", EventRegistryController.attachStream)
+app.delete("/api/events/listener/:id/streams/:streamId", EventRegistryController.removeStream)
 
 app.post("/api/events/send", EventController.create)
 app.get("/api/events/feed/:time/:period/client/:clienId", EventController.list)
 app.put("/api/events/:eventId/ok/:clientId", EventController.markProcessd)
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   res.status(400).json({ error: err.message})
 })
 

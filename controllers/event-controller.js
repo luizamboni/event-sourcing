@@ -4,19 +4,27 @@ const wrap = require("co-express")
 const moment = require("moment")
 
 const Event = require("../models/mongoose/event")
+const EventRegistry = require("../models/mongoose/event-registry")
+const ProcessEvent = require("../services/process-events")
 
 module.exports = {
 
 
   create: wrap(function*(req, res) {
     const attrs = req.body
+    
+    const registered = yield EventRegistry.findOne({ type: attrs.type })
+    
+    if(registered) {
+      const event = yield Event.create(attrs)
 
-    Event.create(attrs)
-    .then(event => {
+      ProcessEvent.process(event, registered.streams)
+
       res.status(201).json(event)
-    }).catch(err => {
-      res.status(400).json({ error: err.message})
-    })
+      
+    } else {
+      res.status(422).json({ msg: "not found"})
+    }
   }),
 
   list: wrap(function*(req, res) {

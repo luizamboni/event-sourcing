@@ -1,11 +1,12 @@
 "use strict"
 
 const mongoose = require("../../initializers/mongoose")()
+const uuidv4 = require('uuid/v4')
 
 const { Schema } = mongoose
 
 const eventSchema = new Schema({
-  _id: { type: String },
+  _id: { type: String, default: uuidv4  },
   type: { type: String, required: true },
   payload: { type: Object, required: true },
   date: { type: Date, default: Date.now },
