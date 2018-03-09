@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "./bin/www",
-    "test": "mocha"
+    "test": "NODE_ENV=test mocha"
   },
   "keywords": [
     "event",
@@ -25,6 +25,14 @@
     "moment": "^2.21.0",
     "mongoose": "^5.0.9",
     "morgan": "^1.9.0",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2",
     "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha-co": "^1.17.2",
+    "mongodb-test-helper": "^1.0.2",
+    "supertest": "^3.0.0"
   }
 }

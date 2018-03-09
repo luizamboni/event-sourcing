@@ -7,7 +7,7 @@ const { Schema } = mongoose
 
 const eventSchema = new Schema({
   _id: { type: String, default: uuidv4  },
-  type: { type: String, required: true },
+  name: { type: String, required: true },
   payload: { type: Object, required: true },
   date: { type: Date, default: Date.now },
   processed_by: { type: [ String ] },

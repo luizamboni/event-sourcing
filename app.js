@@ -15,16 +15,16 @@ app.use(bodyParserMiddleware.json())
 
 app.use(loggerMiddleware("dev"))
 
-app.get("/api/events/listener/:id", EventRegistryController.get)
-app.post("/api/events/listener", EventRegistryController.create)
-app.post("/api/events/listener/:id/streams", EventRegistryController.attachStream)
-app.delete("/api/events/listener/:id/streams/:streamId", EventRegistryController.removeStream)
+app.get("/api/v1/listener/:id", EventRegistryController.get)
+app.post("/api/v1/listener", EventRegistryController.create)
+app.delete("/api/v1/listener/:id", EventRegistryController.destroy)
 
-app.post("/api/events/send", EventController.create)
-app.get("/api/events/feed/:time/:period/client/:clienId", EventController.list)
-app.put("/api/events/:eventId/ok/:clientId", EventController.markProcessd)
+app.post("/api/v1/events/", EventController.create)
+app.get("/api/v1/events/feed/:time/:period/client/:clienId", EventController.list)
+app.put("/api/v1/events/:eventId/ok/:clientId", EventController.markProcessd)
 
 app.use((err, req, res, next) => {
+  debugger
   res.status(400).json({ error: err.message})
 })
 

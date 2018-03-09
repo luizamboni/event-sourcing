@@ -4,8 +4,11 @@ const wrap = require("co-express")
 const moment = require("moment")
 
 const Event = require("../models/mongoose/event")
-const EventRegistry = require("../models/mongoose/event-registry")
-const ProcessEvent = require("../services/process-events")
+
+
+const SubscribeService = require("../services/subscribe-service")
+
+const EventService = require("../services/event-service")
 
 module.exports = {
 
@@ -13,14 +16,13 @@ module.exports = {
   create: wrap(function*(req, res) {
     const attrs = req.body
     
-    const registered = yield EventRegistry.findOne({ type: attrs.type })
+    const subscriptions = yield SubscribeService.eventSubscriptions(attrs.type)
     
-    if(registered) {
-      const event = yield Event.create(attrs)
+    if(subscriptions.length > 0) {
 
-      ProcessEvent.process(event, registered.streams)
+      EventService.process(attrs, subscriptions)
 
-      res.status(201).json(event)
+      res.status(202).json({ msg: "accepted" })
       
     } else {
       res.status(422).json({ msg: "not found"})
@@ -51,42 +53,30 @@ module.exports = {
         break
     }
 
-    Event.find({
-      date: {
-        $gte: startDate.toDate(),
-        $lt: endDate.toDate(),
-      },
-    }).then(events => {
-      res.json({
-        events: events.map(event => ({
-          type: event.type,
-          payload: event.payload,
-          date: event.date,
-          links: [
-            { rel: "self", href: `/api/events/${event.id}` },
-            { rel: "mark-processed", href: `/api/events/${event.id}/ok/${clienId}` }
-          ]
-        })),
+    const events = yield EventService.list(startDate.toDate(), endDate.toDate())
+
+    res.json({
+      events: events.map(event => ({
+        type: event.type,
+        payload: event.payload,
+        date: event.date,
         links: [
-          { rel: "self", href: req.originalUrl },
-          { rel: "prev", href: `/api/events/feed/${time}/${prevDate}/client/${clienId}` }
+          { rel: "self", href: `/api/events/${event.id}` },
+          { rel: "mark-processed", href: `/api/events/${event.id}/ok/${clienId}` }
         ]
-      })
+      })),
+      links: [
+        { rel: "self", href: req.originalUrl },
+        { rel: "prev", href: `/api/events/feed/${time}/${prevDate}/client/${clienId}` }
+      ]
     })
   }),
 
   markProcessd: wrap(function*(req, res) {
 
     const { eventId, clientId } = req.params
+    const ok = yield EventService.markProcessed(eventId, clientId)
 
-    Event.findOne({ _id: eventId, processed_by: { $nin: [clientId]  }})
-    .then(event => {
-      if (event) {
-        event.processed_by.addToSet(clientId)
-        event.save()
-        res.json({ acknowledge: true })
-      } else // TODO: gone status
-        res.json({ message: "event gone"})
-    })
+    res.json({ acknowledge: ok })
   })
 }
