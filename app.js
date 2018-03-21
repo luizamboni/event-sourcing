@@ -24,7 +24,6 @@ app.get("/api/v1/events/feed/:time/:period/client/:clienId", EventController.lis
 app.put("/api/v1/events/:eventId/ok/:clientId", EventController.markProcessd)
 
 app.use((err, req, res, next) => {
-  debugger
   res.status(400).json({ error: err.message})
 })
 

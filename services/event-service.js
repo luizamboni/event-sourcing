@@ -5,14 +5,21 @@ const moment = require("moment")
 module.exports = {
 
 
-  list(startDate, endDate) {
- 
-    return Event.find({
+  list(startDate, endDate, not_processed_by) {
+
+    const q = {
       date: {
         $gte: startDate,
         $lt: endDate,
-      },
-    })
+      }
+    }
+
+    if (not_processed_by)
+      q.processed_by = {
+        $nin: [not_processed_by]
+      }
+
+    return Event.find(q)
   },
 
   markProcessed(eventId, clientId) {

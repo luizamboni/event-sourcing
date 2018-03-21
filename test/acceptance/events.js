@@ -67,17 +67,42 @@ describe("events routes", () => {
 
   describe("GET /api/v1/events/feed/:time/:period/client/:clientId", () => {
 
-    let res
+    let res, body
 
-    const period = moment().startOf("day").format("YYYY-DD-MMTHH")
+    const period = 12
 
     before(function*() {
       res = yield request(app).get(`/api/v1/events/feed/hour/${period}/client/xpto`)
+      body = res.body
     })
 
     it("response status", () => {
       expect(res.status).to.be.equal(200)
     })
-  })
 
+
+    describe("links", () => {
+
+      it("links", () => {
+        debugger
+        expect(body.links).to.be.equals([
+          {
+            rel: "self",
+            href: "/api/v1/events/feed/hour/12/client/xpto",
+          },
+          {
+            rel: "prev",
+            href: "/api/events/feed/hour/11/client/xpto",
+          }
+        ])
+      })
+
+      it("mark proccesed", function*() {
+debugger
+        // let res = yield request(app).get(`/api/v1/events/feed/hour/${period}/client/xpto`)
+        
+        expect(res.status).to.be.equal(200)
+      })
+    })
+  })
 })
