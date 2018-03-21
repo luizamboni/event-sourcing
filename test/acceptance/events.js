@@ -69,7 +69,7 @@ describe("events routes", () => {
 
     let res, body
 
-    const period = 12
+    const period = moment().hour()
 
     before(function*() {
       res = yield request(app).get(`/api/v1/events/feed/hour/${period}/client/xpto`)
@@ -84,24 +84,26 @@ describe("events routes", () => {
     describe("links", () => {
 
       it("links", () => {
-        debugger
-        expect(body.links).to.be.equals([
+        expect(body.links).to.be.eqls([
           {
             rel: "self",
-            href: "/api/v1/events/feed/hour/12/client/xpto",
+            href: `/api/v1/events/feed/hour/${period}/client/xpto`,
           },
           {
             rel: "prev",
-            href: "/api/events/feed/hour/11/client/xpto",
+            href: `/api/v1/events/feed/hour/${period - 1}/client/xpto`,
           }
         ])
       })
 
       it("mark proccesed", function*() {
-debugger
-        // let res = yield request(app).get(`/api/v1/events/feed/hour/${period}/client/xpto`)
+        const [ event ] = res.body.events
+        const { href } = event.links.find(l => l.rel === "mark-processed")
+
+        let res2 = yield request(app).put(href)
         
-        expect(res.status).to.be.equal(200)
+        console.log(res2.body)
+        expect(res2.status).to.be.equal(200)
       })
     })
   })
