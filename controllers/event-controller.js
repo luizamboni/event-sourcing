@@ -12,6 +12,28 @@ const EventService = require("../services/event-service")
 
 module.exports = {
 
+  get: wrap(function*(req, res) {
+    let { id } = req.params
+    const event = yield EventService.findOne(id)
+
+    res.json({
+      type: event.type,
+      payload: event.payload,
+      date: event.date,
+      _embedded: {
+        subscriptions: yield SubscribeService.eventSubscriptions(event.type)
+      },
+      _links: [
+        { rel: "self", href: `/api/v1/events/${event.id}` },
+        { 
+          rel: "mark-processed", 
+          href: `/api/v1/events/${event.id}/ok/{clienId}` ,
+          templated: true
+        }
+      ]
+    })
+    
+  }),
 
   create: wrap(function*(req, res) {
     const attrs = req.body
@@ -30,41 +52,25 @@ module.exports = {
   }),
 
   list: wrap(function*(req, res) {
-    const { time, period, clienId } = req.params
+    let { endDate, startDate, clienId } = req.params
 
-    let startDate, endDate
+    const events = yield EventService.list(startDate, endDate, clienId)
 
-
-    switch (time) {
-      case "hour":
-        startDate = moment().hour(period, "hour").startOf("hour")
-        endDate =  moment().hour(period, "hour").endOf("hour")
-        break
-      case "day":
-        startDate = moment().day(period, "day").startOf("day").endOf("hour")
-        endDate =  moment().day(period, "day").endOf("day").endOf("hour")
-        break
-      case "month":
-        startDate = moment().month(period, "month").startOf("month").startOf("day")
-        endDate =  moment().month(period, "month").endOf("month").endOf("day")
-        break
-    }
-
-    const events = yield EventService.list(startDate.toDate(), endDate.toDate(), clienId)
+    const prevDate = moment(startDate).subtract(1, "day").format("YYYY-MM-DD")
 
     res.json({
       events: events.map(event => ({
         type: event.type,
         payload: event.payload,
         date: event.date,
-        links: [
+        _links: [
           { rel: "self", href: `/api/v1/events/${event.id}` },
           { rel: "mark-processed", href: `/api/v1/events/${event.id}/ok/${clienId}` }
         ]
       })),
-      links: [
+      _links: [
         { rel: "self", href: req.originalUrl },
-        { rel: "prev", href: `/api/v1/events/feed/${time}/${period - 1}/client/${clienId}` }
+        { rel: "prev", href: `/api/v1/events/feed/${prevDate}/to/${startDate}/client/${clienId}` }
       ]
     })
   }),

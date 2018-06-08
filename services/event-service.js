@@ -4,6 +4,17 @@ const moment = require("moment")
 
 module.exports = {
 
+  _serialize(event) {
+    if (event.map)
+      return event.map(e => this._serialize(e))
+    else
+      return {
+        id: event.id,
+        payload: event.payload,
+        data: event.date,
+        type: event.type,
+      }
+  },
 
   list(startDate, endDate, not_processed_by) {
 
@@ -19,7 +30,11 @@ module.exports = {
         $nin: [not_processed_by]
       }
 
-    return Event.find(q)
+    return Event.find(q).then(events => this._serialize(events))
+  },
+
+  findOne(id) {
+    return Event.findOne({ _id: id }).then(event => this._serialize(event))
   },
 
   markProcessed(eventId, clientId) {

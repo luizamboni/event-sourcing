@@ -12,7 +12,7 @@ module.exports = {
 
     const eventRegistry = yield SubscribeService.findOne(id)
 
-     res.json({ eventRegistry })
+    res.json({ eventRegistry })
   }),
 
   create: wrap(function*(req, res) {
